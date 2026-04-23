@@ -1,7 +1,4 @@
 import { createContext, useReducer } from "react";
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 export const MovieContext = createContext();
 
@@ -37,7 +34,7 @@ export function MovieProvider({ children }) {
 
     try {
       const res = await fetch(
-        `https://www.omdbapi.com/?s=${query}&apikey=${process.env.API_KEY}`
+        `https://www.omdbapi.com/?s=${query}&apikey=${import.meta.env.VITE_API_KEY}`
       );
       const data = await res.json();
 
