@@ -1,24 +1,34 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
+import { useForm } from "react-hook-form";
 import { MovieContext } from "../contexts/MovieContext";
 
 export default function Search() {
-  const [input, setInput] = useState("");
   const { searchMovies } = useContext(MovieContext);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    searchMovies(input);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = (data) => {
+    searchMovies(data.query);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <input
         type="text"
         placeholder="Buscar filme..."
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
+        {...register("query", {
+          required: "Digite um filme",
+        })}
       />
+
       <button type="submit">Buscar</button>
+
+      {/* Erro de validação */}
+      {errors.query && <p>{errors.query.message}</p>}
     </form>
   );
 }

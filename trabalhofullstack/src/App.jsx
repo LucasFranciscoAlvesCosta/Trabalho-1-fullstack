@@ -12,7 +12,7 @@ function App() {
       <h1>Busca de Filmes</h1>
       <Search />
       <MovieList />
-    </div>
+    </div> 
   )
 }
 
