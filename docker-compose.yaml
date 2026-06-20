@@ -1,0 +1,27 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+    container_name: movies-backend
+    ports:
+      - "5000:5000"
+    environment:
+      JWT_SECRET: super_secret_key
+      OMDB_API_KEY: 866e5b40
+      NODE_ENV: production
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: movies-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules

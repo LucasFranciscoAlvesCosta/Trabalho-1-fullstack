@@ -6,6 +6,12 @@ Para começar rápido, siga os passos:
 
 **Resumo:**
 
+Abra o Docker, e digite no terminal do VsCode:
+```bash
+docker compose up
+```
+
+
 1. Backend:
 ```bash
 cd backend
