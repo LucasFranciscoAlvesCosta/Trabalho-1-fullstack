@@ -20,4 +20,5 @@ npm install
 npm run dev
 ```
 
-Acesse: http://localhost:5173
+
+Acesse: http://localhost:5173/Trabalho-1-fullstack/
