@@ -39,7 +39,7 @@ export async function verifyToken(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
+    return res.status(401).json({ error: 'Nenhum token fornecido' });
   }
 
   try {
@@ -47,7 +47,7 @@ export async function verifyToken(req, res, next) {
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid token' });
+      return res.status(401).json({ error: 'Token inválido' });
     }
 
     const tokenVersion = decoded.tokenVersion ?? 0;
@@ -61,7 +61,7 @@ export async function verifyToken(req, res, next) {
     req.username = user.username;
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: 'Token inválido' });
   }
 }
 
@@ -71,14 +71,14 @@ router.post(
   body('username')
     .trim()
     .isLength({ min: 3, max: 20 })
-    .withMessage('Username must be between 3 and 20 characters')
+    .withMessage('Username deve ter entre 3 e 20 caracteres')
     .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('Username can only contain alphanumeric characters and underscores'),
+    .withMessage('Username pode conter apenas caracteres alfanuméricos e underscores'),
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters')
+    .withMessage('Password deve ter pelo menos 6 caracteres')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain uppercase, lowercase, and number'),
+    .withMessage('Password deve conter letras maiúsculas, minúsculas e números'),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -93,7 +93,7 @@ router.post(
       const existingUser = await User.findByUsername(username);
       if (existingUser) {
         logAuthAttempt(username, 'FAILED_DUPLICATE', ipAddress, userAgent);
-        return res.status(400).json({ error: 'User already exists' });
+        return res.status(400).json({ error: 'Usuário já existe' });
       }
 
       const userId = await User.create(username, password);
@@ -104,13 +104,13 @@ router.post(
       const token = signToken(user);
 
       res.status(201).json({
-        message: 'User registered successfully',
+        message: 'Usuário registrado com sucesso',
         token,
         user: { id: user.id, username: user.username },
       });
     } catch (error) {
       logAuthAttempt(username, 'FAILED_ERROR', ipAddress, userAgent);
-      res.status(500).json({ error: 'Registration failed' });
+      res.status(500).json({ error: 'Falha no registro' });
     }
   }
 );
@@ -118,8 +118,8 @@ router.post(
 router.post(
   '/login',
   loginLimiter,
-  body('username').trim().notEmpty().withMessage('Username is required'),
-  body('password').notEmpty().withMessage('Password is required'),
+  body('username').trim().notEmpty().withMessage('Username é requerido'),
+  body('password').notEmpty().withMessage('Password é requerido'),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -135,27 +135,27 @@ router.post(
 
       if (!user) {
         logAuthAttempt(username, 'FAILED_NOT_FOUND', ipAddress, userAgent);
-        return res.status(401).json({ error: 'Invalid credentials' });
+        return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
       const isValidPassword = await User.validatePassword(password, user.password);
       if (!isValidPassword) {
         logAuthAttempt(username, 'FAILED_WRONG_PASSWORD', ipAddress, userAgent);
-        return res.status(401).json({ error: 'Invalid credentials' });
+        return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
-      logAuthAttempt(username, 'SUCCESS', ipAddress, userAgent);
+      logAuthAttempt(username, 'SUCCESSO', ipAddress, userAgent);
 
       const token = signToken(user);
 
       res.json({
-        message: 'Login successful',
+        message: 'Login bem sucedido!',
         token,
         user: { id: user.id, username: user.username },
       });
     } catch (error) {
       logAuthAttempt(username, 'FAILED_ERROR', ipAddress, userAgent);
-      res.status(500).json({ error: 'Login failed' });
+      res.status(500).json({ error: 'Falha no login!' });
     }
   }
 );
@@ -165,12 +165,12 @@ router.get('/verify', verifyToken, async (req, res) => {
     const user = await User.findById(req.userId);
 
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      return res.status(401).json({ error: 'Usuário não encontrado' });
     }
 
     res.json({ valid: true, user });
   } catch (error) {
-    res.status(500).json({ error: 'Verification failed' });
+    res.status(500).json({ error: 'Falha na verificação' });
   }
 });
 
@@ -180,7 +180,7 @@ router.post('/logout', verifyToken, async (req, res) => {
     logAuthAttempt(req.username || 'unknown', 'LOGOUT', req.ip, req.headers['user-agent'] || 'Unknown');
     res.json({ message: 'Logout successful' });
   } catch (error) {
-    res.status(500).json({ error: 'Logout failed' });
+    res.status(500).json({ error: 'Falha no logout' });
   }
 });
 

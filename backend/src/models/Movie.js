@@ -37,7 +37,7 @@ export class Movie {
   }
 
   static async search(query) {
-    // Sanitize search query to prevent SQL injection
+    // Previne SQL injection
     const safeQuery = `%${query.replace(/[%_]/g, '\\$&')}%`;
     
     return await allAsync(

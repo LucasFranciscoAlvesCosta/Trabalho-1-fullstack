@@ -9,16 +9,16 @@ import authRoutes from './src/routes/auth.js';
 import movieRoutes from './src/routes/movies.js';
 import { logError } from './src/config/logger.js';
 
-// Load environment variables
+// Carrega variaveis de ambiente
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security middleware
+// Middleware de segurança
 app.use(helmet());
 
-// CORS configuration
+// Configuração do CORS
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
@@ -26,17 +26,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Compression middleware
+// middleware de compressão para respostas
 app.use(compression());
 
-// Logging middleware
+// middleware de logging
 app.use(morgan('combined'));
 
-// Body parser middleware with size limits
+// Middleware de análise de body com limites de tamanho
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ limit: '10kb', extended: true }));
 
-// Request validation middleware
+// Middleware de validação de requisição
 app.use((req, res, next) => {
   const suspiciousPatterns = /<script|javascript:|onerror=|onclick=|<iframe/i;
   const payload = JSON.stringify({
@@ -45,54 +45,55 @@ app.use((req, res, next) => {
   });
 
   if (suspiciousPatterns.test(payload)) {
-    return res.status(400).json({ error: 'Invalid request data' });
+    return res.status(400).json({ error: 'Dados de requisição inválidos' });
   }
 
   next();
 });
 
-// Routes
+// Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
 
-// Health check endpoint
+// checkar saúde endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ error: 'Rota não encontrada' });
 });
 
-// Global error handler
+// Erro global handler
 app.use((error, req, res, next) => {
   logError(error, `${req.method} ${req.path}`);
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({ error: 'Erro interno de servidor' });
 });
 
-// Initialize database and start server
+// Inicializa database e inicia server
 async function startServer() {
   try {
     await initializeDatabase();
-    console.log('Database initialized successfully');
+    console.log('Database iniciado com sucesso');
 
     app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Server rodando em http://localhost:${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV}`);
     });
   } catch (error) {
     logError(error, 'Server startup');
-    console.error('Failed to start server:', error);
+    console.error('Falha ao iniciar server:', error);
     process.exit(1);
   }
 }
 
 startServer();
 
-// Graceful shutdown
+// Desligamento normal
+
 process.on('SIGINT', () => {
-  console.log('Server shutting down gracefully...');
+  console.log('Server desligando...');
   process.exit(0);
 });
 

@@ -6,9 +6,9 @@ import { logActivity } from '../config/logger.js';
 
 const router = express.Router();
 
-// Cache for OMDB API results (simple in-memory cache)
+// Cache para resultados da API OMDB (simple in-memory cache)
 const apiCache = new Map();
-const CACHE_TTL = 3600000; // 1 hour
+const CACHE_TTL = 3600000; // 1 hora
 
 async function fetchFromOMDB(searchQuery) {
   if (!process.env.OMDB_API_KEY) {
@@ -35,22 +35,22 @@ async function fetchFromOMDB(searchQuery) {
 
     return data;
   } catch (error) {
-    throw new Error('Failed to fetch from OMDB API');
+    throw new Error('Falha ao buscar do OMDB API');
   }
 }
 
-// GET /movies - Get all movies from database
+// GET /movies
 router.get('/', verifyToken, async (req, res) => {
   try {
     const movies = await Movie.findAll();
     logActivity(req.userId, 'VIEW_ALL_MOVIES', `Retrieved ${movies.length} movies`);
     res.json(movies);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch movies' });
+    res.status(500).json({ error: 'Falha ao buscar filmes' });
   }
 });
 
-// GET /movies/search - Search movies
+// GET /movies/search
 router.get(
   '/search',
   verifyToken,
@@ -58,9 +58,9 @@ router.get(
     query('query')
       .trim()
       .notEmpty()
-      .withMessage('Search query is required')
+      .withMessage('Query de pesquisa é requerida')
       .isLength({ max: 100 })
-      .withMessage('Search query must not exceed 100 characters'),
+      .withMessage('Query de pesquisa não deve exceder 100 caracteres'),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -93,29 +93,29 @@ router.get(
             ];
           }
         } catch (error) {
-          console.error('OMDB search error:', error);
+          console.error('Erro na pesquisa do OMDB:', error);
         }
       }
 
       logActivity(req.userId, 'SEARCH_MOVIES', `Query: ${searchQuery}`);
       res.json(results);
     } catch (error) {
-      console.error('Search error:', error);
-      res.status(500).json({ error: 'Search failed' });
+      console.error('Erro de pesquisa:', error);
+      res.status(500).json({ error: 'Falha na pesquisa' });
     }
   }
 );
 
-// POST /movies - Add a new movie
+// POST /movies - Adicionar um novo filme
 router.post(
   '/',
   verifyToken,
   [
-    body('imdbID').trim().notEmpty().withMessage('IMDb ID is required'),
-    body('title').trim().notEmpty().withMessage('Title is required'),
-    body('year').optional({ checkFalsy: true }).isInt().withMessage('Year must be a number'),
-    body('poster').optional({ checkFalsy: true }).isURL().withMessage('Poster must be a valid URL'),
-    body('plot').optional({ checkFalsy: true }).trim().isLength({ max: 1000 }).withMessage('Plot must not exceed 1000 characters'),
+    body('imdbID').trim().notEmpty().withMessage('IMDb ID é requerido'),
+    body('title').trim().notEmpty().withMessage('Titulo é requerido'),
+    body('year').optional({ checkFalsy: true }).isInt().withMessage('Ano deve ser um número'),
+    body('poster').optional({ checkFalsy: true }).isURL().withMessage('Poster deve ser uma URL válida'),
+    body('plot').optional({ checkFalsy: true }).trim().isLength({ max: 1000 }).withMessage('Plot não deve exceder 1000 caracteres'),
     body('genre').optional({ checkFalsy: true }).trim(),
     body('director').optional({ checkFalsy: true }).trim(),
     body('actors').optional({ checkFalsy: true }).trim(),
@@ -142,27 +142,27 @@ router.post(
       logActivity(req.userId, 'INSERT_MOVIE', `Added: ${movieData.title}`);
 
       res.status(201).json({
-        message: 'Movie added successfully',
+        message: 'Filme adicionado com sucesso',
         id: result.id,
       });
     } catch (error) {
       if (error.message.includes('already exists')) {
-        return res.status(400).json({ error: 'Movie already exists in database' });
+        return res.status(400).json({ error: 'Filme já existe na base de dados' });
       }
-      console.error('Insert error:', error);
-      res.status(500).json({ error: 'Failed to add movie' });
+      console.error('Erro de inserção:', error);
+      res.status(500).json({ error: 'Falha ao adicionar filme' });
     }
   }
 );
 
-// GET /movies/user/:userId - Get movies added by a user
+// GET /movies/user/:userId - Obter filmes adicionados por um usuário
 router.get('/user/:userId', verifyToken, async (req, res) => {
   try {
     const movies = await Movie.getUserMovies(req.params.userId);
     logActivity(req.userId, 'VIEW_USER_MOVIES', `User: ${req.params.userId}`);
     res.json(movies);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch user movies' });
+    res.status(500).json({ error: 'Falha ao buscar filmes do usuário' });
   }
 });
 
